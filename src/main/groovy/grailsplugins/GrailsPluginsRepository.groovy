@@ -1,21 +1,21 @@
 package grailsplugins
 
-import com.bintray.BintrayPackage
+import com.artifact.ArtifactPackage
 import com.github.GithubRepository
 import groovy.transform.CompileStatic
 
 @CompileStatic
 interface GrailsPluginsRepository {
-    BintrayKey save(BintrayPackage bintrayPackage)
-    BintrayKey updateGithubRepository(BintrayKey key, GithubRepository githubRepository)
-    BintrayKey updateGithubRepositoryReadme(BintrayKey key, String readme)
-    GrailsPlugin find(BintrayKey key)
+    ArtifactKey save(ArtifactPackage bintrayPackage)
+    ArtifactKey updateGithubRepository(ArtifactKey key, GithubRepository githubRepository)
+    ArtifactKey updateGithubRepositoryReadme(ArtifactKey key, String readme)
+    GrailsPlugin find(ArtifactKey key)
     int count()
     List<GrailsPlugin> topRatedPlugins()
     List<GrailsPlugin> latestPlugins()
     List<GrailsPlugin> findAll()
     List<GrailsPlugin> findByQuery(String query)
     GrailsPlugin findByPluginName(String name)
-    String findPreviousLatestVersion(BintrayKey key)
+    String findPreviousLatestVersion(ArtifactKey key)
     void clearNotUpdatedSince(Date date)
 }

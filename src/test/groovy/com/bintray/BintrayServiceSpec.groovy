@@ -4,7 +4,7 @@ import grails.testing.services.ServiceUnitTest
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class BintrayServiceSpec extends Specification implements ServiceUnitTest<BintrayApi> {
+class BintrayServiceSpec extends Specification implements ServiceUnitTest<BintrayService> {
 
     @Unroll
     def "Total #total Start: #start end: #end expects #expected"(Integer total, Integer start, Integer end, List<Integer> expected) {

@@ -1,6 +1,6 @@
 package grailsplugins
 
-import com.bintray.BintrayPackage
+import com.artifact.ArtifactPackage
 import com.github.GithubRepository
 import grails.config.Config
 import grails.core.support.GrailsConfigurationAware
@@ -25,21 +25,21 @@ class GrailsPluginsRepositoryService implements GrailsPluginsRepository, GrailsC
         numberOfTopRatedGuides = co.getProperty('grails.plugins.topRated.max', Integer, 5)
     }
 
-    Map<BintrayKey, GrailsPlugin> grailsPlugins = [:]
-    Map<BintrayKey, String> versions = [:]
+    Map<ArtifactKey, GrailsPlugin> grailsPlugins = [:]
+    Map<ArtifactKey, String> versions = [:]
 
     @Override
     @Synchronized
     void clearNotUpdatedSince(Date oneDayAgo) {
-        Set<BintrayKey> keysToBeRemoved = []
-        for ( BintrayKey key : grailsPlugins.keySet() ) {
+        Set<ArtifactKey> keysToBeRemoved = []
+        for ( ArtifactKey key : grailsPlugins.keySet() ) {
             GrailsPlugin grailsPlugin = grailsPlugins[key]
             if ( grailsPlugin.lastUpdated && grailsPlugin.lastUpdated.before(oneDayAgo) ) {
                 keysToBeRemoved << key
             }
         }
         log.info('removing #{}',"${keysToBeRemoved.size()}".toString())
-        for ( BintrayKey key : keysToBeRemoved ) {
+        for ( ArtifactKey key : keysToBeRemoved ) {
             grailsPlugins.remove(key)
             versions.remove(key)
         }
@@ -47,8 +47,8 @@ class GrailsPluginsRepositoryService implements GrailsPluginsRepository, GrailsC
 
     @Synchronized
     @Override
-    BintrayKey save(BintrayPackage bintrayPackage) {
-        BintrayKey key = BintrayKey.of(bintrayPackage)
+    ArtifactKey save(ArtifactPackage bintrayPackage) {
+        ArtifactKey key = ArtifactKey.of(bintrayPackage)
         GrailsPlugin grailsPlugin = new GrailsPlugin(bintrayPackage: bintrayPackage)
         grailsPlugin.lastUpdated = new Date()
         grailsPlugins.put(key, grailsPlugin)
@@ -59,20 +59,20 @@ class GrailsPluginsRepositoryService implements GrailsPluginsRepository, GrailsC
 
     @Synchronized
     @Override
-    BintrayKey updateGithubRepository(BintrayKey key, GithubRepository githubRepository) {
+    ArtifactKey updateGithubRepository(ArtifactKey key, GithubRepository githubRepository) {
         grailsPlugins[key]?.githubRepository = githubRepository
         key
     }
 
     @Synchronized
     @Override
-    BintrayKey updateGithubRepositoryReadme(BintrayKey key, String readme) {
+    ArtifactKey updateGithubRepositoryReadme(ArtifactKey key, String readme) {
         grailsPlugins[key]?.readme = readme
         key
     }
 
     @Override
-    GrailsPlugin find(BintrayKey key) {
+    GrailsPlugin find(ArtifactKey key) {
         grailsPlugins[key]
     }
 
@@ -149,7 +149,7 @@ class GrailsPluginsRepositoryService implements GrailsPluginsRepository, GrailsC
     }
 
     @Override
-    String findPreviousLatestVersion(BintrayKey key) {
+    String findPreviousLatestVersion(ArtifactKey key) {
         versions[key]
     }
 }

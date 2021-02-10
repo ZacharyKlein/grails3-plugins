@@ -75,7 +75,7 @@ class PluginController implements GrailsConfigurationAware {
 
     def pluginWithOwner(String ownerName, String pluginName) {
 
-        GrailsPlugin plugin = grailsPluginsRepository.find(new BintrayKey(owner: ownerName, name: pluginName))
+        GrailsPlugin plugin = grailsPluginsRepository.find(new ArtifactKey(owner: ownerName, name: pluginName))
 
         if ( !plugin ) {
             response.sendError(404)

@@ -17,7 +17,7 @@ import io.micronaut.http.uri.UriBuilder
 
 @CompileStatic
 @Slf4j
-class BintrayApi implements GrailsConfigurationAware, ArtifactApi {
+class BintrayService implements GrailsConfigurationAware, ArtifactApi {
 
     private static final String BINTRAY_API_URL = "https://api.bintray.com";
 

@@ -1,9 +1,9 @@
 package grailsplugins
 
+import com.artifact.ArtifactPackage
+import com.artifact.ArtifactPackageResponse
 import com.artifact.ArtifactPackageSimple
-import com.bintray.BintrayPackage
-import com.bintray.BintrayPackageResponse
-import com.bintray.BintrayApi
+import com.artifact.ArtifactService
 import com.github.GithubReadmeService
 import com.github.GithubRepository
 import com.github.GithubService
@@ -22,7 +22,7 @@ import static grails.async.Promises.task
 class GrailsPluginsService implements GrailsConfigurationAware {
 
     GrailsPluginsRepository grailsPluginsRepository
-    BintrayApi bintrayRepository
+    ArtifactService artifactService
     GithubService githubService
     GithubReadmeService githubReadmeService
     AsciidocRenderService asciidocRenderService
@@ -48,18 +48,18 @@ class GrailsPluginsService implements GrailsConfigurationAware {
     void refresh() {
         grailsPluginsRepository.clearNotUpdatedSince(oneDayAgo())
         Integer startAt = 0
-        BintrayPackageResponse rsp = bintrayRepository.fetchPackagesByStartPosition(startAt)
+        ArtifactPackageResponse rsp = artifactService.fetchPackagesByStartPosition(startAt)
         if ( rsp != null ) {
-            log.trace 'BintrayPackageResponse start: {} end: {} total: {}', rsp.start, rsp.end, rsp.total
+            log.trace 'ArtifactPackageResponse start: {} end: {} total: {}', rsp.start, rsp.end, rsp.total
             fetch(rsp)
-            List<Integer> positions = bintrayRepository.expectedExtraStarPositions(rsp.total, rsp.start, rsp.end)
+            List<Integer> positions = artifactService.expectedExtraStarPositions(rsp.total, rsp.start, rsp.end)
             log.trace("positions {}", positions)
             positions.each { Integer start ->
                 task {
                     log.trace("fetching bintray packages with start {}", start)
-                    bintrayRepository.fetchPackagesByStartPosition(start)
-                }.onComplete { BintrayPackageResponse bintrayPackageResponse ->
-                    log.trace 'BintrayPackageResponse start: {} end: {} total: {}', bintrayPackageResponse.start, bintrayPackageResponse.end, bintrayPackageResponse.total
+                    artifactService.fetchPackagesByStartPosition(start)
+                }.onComplete { ArtifactPackageResponse bintrayPackageResponse ->
+                    log.trace 'ArtifactPackageResponse start: {} end: {} total: {}', bintrayPackageResponse.start, bintrayPackageResponse.end, bintrayPackageResponse.total
                     if ( bintrayPackageResponse != null ) {
                         fetch(bintrayPackageResponse)
                     } else {
@@ -70,7 +70,7 @@ class GrailsPluginsService implements GrailsConfigurationAware {
         }
     }
 
-    void fetch(BintrayPackageResponse rsp) {
+    void fetch(ArtifactPackageResponse rsp) {
         for (ArtifactPackageSimple bintrayPackageSimple : rsp.packageList ) {
             log.debug("fetching bintray package {}", bintrayPackageSimple.toString())
             fetch(bintrayPackageSimple)
@@ -81,10 +81,10 @@ class GrailsPluginsService implements GrailsConfigurationAware {
         if ( !blacklist.contains(bintrayPackageSimple.name) ) {
             task {
                 log.trace("fetch bintray package {}", bintrayPackageSimple.name)
-                bintrayRepository.fetchPackage(bintrayPackageSimple.name)
-            }.onComplete { BintrayPackage bintrayPackage ->
+                artifactService.fetchPackage(bintrayPackageSimple.name)
+            }.onComplete { ArtifactPackage bintrayPackage ->
                 if ( bintrayPackage ) {
-                    BintrayKey key = BintrayKey.of(bintrayPackage)
+                    ArtifactKey key = ArtifactKey.of(bintrayPackage)
                     String previousVersion = grailsPluginsRepository.findPreviousLatestVersion(key)
 
                     if ( previousVersion &&
@@ -102,11 +102,11 @@ class GrailsPluginsService implements GrailsConfigurationAware {
         }
     }
 
-    void tweetAboutNewVersion(BintrayPackage bintrayPackage) {
+    void tweetAboutNewVersion(ArtifactPackage bintrayPackage) {
         twitterService.tweet "${bintrayPackage.name} ${bintrayPackage.latestVersion} released: http://plugins.grails.org/plugin/${bintrayPackage.owner}/${bintrayPackage.name}"
     }
 
-    boolean isThereANewVersion(BintrayPackage bintrayPackage, String previousVersion) {
+    boolean isThereANewVersion(ArtifactPackage bintrayPackage, String previousVersion) {
         if ( !previousVersion ) {
             return false
         }
@@ -128,7 +128,7 @@ class GrailsPluginsService implements GrailsConfigurationAware {
         false
     }
 
-    void fetchGithubReadme(BintrayKey key) {
+    void fetchGithubReadme(ArtifactKey key) {
         String vcsUrl = grailsPluginsRepository.find(key)?.bintrayPackage?.vcsUrl
         if ( vcsUrl ) {
             task {
@@ -161,7 +161,7 @@ class GrailsPluginsService implements GrailsConfigurationAware {
         }
     }
 
-    void fetchGithubRepository(BintrayKey key) {
+    void fetchGithubRepository(ArtifactKey key) {
         String vcsUrl = grailsPluginsRepository.find(key)?.bintrayPackage?.vcsUrl
         if ( vcsUrl ) {
             task {
