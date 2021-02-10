@@ -52,7 +52,7 @@ class GrailsPluginsService implements GrailsConfigurationAware {
         if ( rsp != null ) {
             log.trace 'ArtifactPackageResponse start: {} end: {} total: {}', rsp.start, rsp.end, rsp.total
             fetch(rsp)
-            List<Integer> positions = artifactService.expectedExtraStarPositions(rsp.total, rsp.start, rsp.end)
+            List<Integer> positions = artifactService.expectedExtraStarPositions(rsp.total, rsp.start, rsp.end) //TODO: Is this needed for our own API?
             log.trace("positions {}", positions)
             positions.each { Integer start ->
                 task {
@@ -71,34 +71,30 @@ class GrailsPluginsService implements GrailsConfigurationAware {
     }
 
     void fetch(ArtifactPackageResponse rsp) {
-        for (ArtifactPackageSimple bintrayPackageSimple : rsp.packageList ) {
-            log.debug("fetching bintray package {}", bintrayPackageSimple.toString())
-            fetch(bintrayPackageSimple)
+        for (ArtifactPackage artifactPackage : rsp.packageList ) {
+            log.debug("fetching bintray package {}", artifactPackage.name)
+            fetch(artifactPackage)
         }
     }
 
-    void fetch(ArtifactPackageSimple bintrayPackageSimple) {
-        if ( !blacklist.contains(bintrayPackageSimple.name) ) {
-            task {
-                log.trace("fetch bintray package {}", bintrayPackageSimple.name)
-                artifactService.fetchPackage(bintrayPackageSimple.name)
-            }.onComplete { ArtifactPackage bintrayPackage ->
-                if ( bintrayPackage ) {
-                    ArtifactKey key = ArtifactKey.of(bintrayPackage)
+    void fetch(ArtifactPackage artifactPackage) {
+        if ( !blacklist.contains(artifactPackage.name) ) {
+                if ( artifactPackage ) {
+                    ArtifactKey key = ArtifactKey.of(artifactPackage)
                     String previousVersion = grailsPluginsRepository.findPreviousLatestVersion(key)
 
                     if ( previousVersion &&
-                         isThereANewVersion(bintrayPackage, previousVersion) ) {
-                        tweetAboutNewVersion(bintrayPackage)
+                         isThereANewVersion(artifactPackage, previousVersion) ) {
+                        tweetAboutNewVersion(artifactPackage)
                     }
-                    log.trace("saving {}", bintrayPackage.name)
-                    key = grailsPluginsRepository.save(bintrayPackage)
+                    log.trace("saving {}", artifactPackage.name)
+                    key = grailsPluginsRepository.save(artifactPackage)
                     fetchGithubRepository(key)
                     fetchGithubReadme(key)
                 } else {
-                    log.warn("could not fetch bintray package {}", bintrayPackageSimple.name)
+                    log.warn("could not fetch bintray package {}", artifactPackage.name)
                 }
-            }
+
         }
     }
 

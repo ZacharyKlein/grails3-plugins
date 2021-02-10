@@ -10,5 +10,5 @@ class ArtifactPackageResponse {
     Integer total
     Integer start
     Integer end
-    List<ArtifactPackageSimple> packageList = []
+    List<ArtifactPackage> packageList = []
 }

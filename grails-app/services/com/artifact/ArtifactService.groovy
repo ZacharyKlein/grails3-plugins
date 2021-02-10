@@ -5,6 +5,7 @@ import grails.core.support.GrailsConfigurationAware
 import grailsplugins.ArtifactApi
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
 @Slf4j
@@ -12,6 +13,10 @@ class ArtifactService implements GrailsConfigurationAware, ArtifactApi {
 
     String organization
     String repository
+
+
+    @Autowired
+    ArtifactApiClient artifactApiClient
 
     @Override
     void setConfiguration(Config co) {
@@ -27,7 +32,10 @@ class ArtifactService implements GrailsConfigurationAware, ArtifactApi {
 
     @Override
     ArtifactPackageResponse fetchPackagesByStartPosition(Integer startPos) throws NumberFormatException, IOException {
-        return new ArtifactPackageResponse(packageList: [new ArtifactPackageSimple(name: "Foo")])
+
+        List<ArtifactPackage> result = artifactApiClient.artifactPackageList(startPos)
+
+        return new ArtifactPackageResponse(total: result.size(), start: 0, end: result.size(), packageList: result)
     }
 
     @Override

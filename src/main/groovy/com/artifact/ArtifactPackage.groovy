@@ -65,4 +65,32 @@ class ArtifactPackage {
     String getVcsUrl() {
         vcs_url
     }
+
+
+    @Override
+    public String toString() {
+        return "ArtifactPackage{" +
+                "name='" + name + '\'' +
+                ", repo='" + repo + '\'' +
+                ", owner='" + owner + '\'' +
+                ", desc='" + desc + '\'' +
+                ", labels=" + labels +
+                ", attribute_names=" + attribute_names +
+                ", licenses=" + licenses +
+                ", custom_licenses=" + custom_licenses +
+                ", followers_count=" + followers_count +
+                ", created='" + created + '\'' +
+                ", website_url='" + website_url + '\'' +
+                ", issue_tracker_url='" + issue_tracker_url + '\'' +
+                ", linked_to_repos=" + linked_to_repos +
+                ", permissions=" + permissions +
+                ", versions=" + versions +
+                ", latest_version='" + latest_version + '\'' +
+                ", updated='" + updated + '\'' +
+                ", rating_count=" + rating_count +
+                ", system_ids=" + system_ids +
+                ", vcs_url='" + vcs_url + '\'' +
+                ", maturity='" + maturity + '\'' +
+                '}';
+    }
 }

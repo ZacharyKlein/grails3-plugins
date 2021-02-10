@@ -15,11 +15,11 @@ class GithubReadmeService {
     BlockingHttpClient client = HttpClient.create(new URL(RAWGITHUBUSERCONTENTURL)).toBlocking()
 
     String fetchMarkdown(String githubSlug) {
-        fetchUrl("/${githubSlug}/master/README.md".toString())
+        fetchUrl("${githubSlug}/blob/master/README.md".toString())
     }
 
     String fetchAsciidoc(String githubSlug) {
-        fetchUrl("/${githubSlug}/master/README.adoc".toString())
+        fetchUrl("${githubSlug}/blob/master/README.adoc".toString())
     }
 
     private String fetchUrl(String url) {
