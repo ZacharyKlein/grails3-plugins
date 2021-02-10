@@ -2,6 +2,7 @@ package com.bintray
 
 import grails.config.Config
 import grails.core.support.GrailsConfigurationAware
+import grailsplugins.ArtifactApi
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -16,7 +17,7 @@ import io.micronaut.http.uri.UriBuilder
 
 @CompileStatic
 @Slf4j
-class BintrayService implements GrailsConfigurationAware {
+class BintrayApi implements GrailsConfigurationAware, ArtifactApi {
 
     private static final String BINTRAY_API_URL = "https://api.bintray.com";
 
@@ -34,7 +35,8 @@ class BintrayService implements GrailsConfigurationAware {
         this.token = co.getProperty('bintray.token', String)
     }
 
-    BintrayPackage fetchBintrayPackage(String name, String organization = this.organization, String repository = this.repository) throws IOException {
+    @Override
+    BintrayPackage fetchPackage(String name, String organization = this.organization, String repository = this.repository) throws IOException {
         final String url = "/packages/${organization}/${repository}/${name}".toString()
         HttpResponse<BintrayPackage> response = null
         try {
@@ -50,8 +52,9 @@ class BintrayService implements GrailsConfigurationAware {
         null
     }
 
+    @Override
     @CompileDynamic
-    BintrayPackageResponse fetchBintrayPackagesByStartPosition(Integer startPos) throws NumberFormatException, IOException {
+    BintrayPackageResponse fetchPackagesByStartPosition(Integer startPos) throws NumberFormatException, IOException {
         log.trace 'Fetching bintray packaging at position: {}', startPos
         String url = UriBuilder.of("/repos/grails/plugins/packages").queryParam("start_pos", startPos).build()
         log.debug("fetching {}", url)
@@ -66,13 +69,14 @@ class BintrayService implements GrailsConfigurationAware {
             return new BintrayPackageResponse(start: startPosition(response.headers),
                     end: endPositionHeader(response.headers),
                     total: totalHeader(response.headers),
-                    bintrayPackageList: bintrayPackageList)
+                    packageList: bintrayPackageList)
         } catch(HttpClientResponseException e) {
             log.warn 'Response {}. Could not fetch bintray packages at {}', response.status.code, startPos
 
         }
     }
 
+    @Override
     List<Integer> expectedExtraStarPositions(Integer total, Integer startPosition, Integer endPosition) {
         if ( total == null || startPosition == null || endPosition == null) {
             return []

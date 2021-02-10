@@ -1,9 +1,9 @@
 package grailsplugins
 
+import com.artifact.ArtifactPackageSimple
 import com.bintray.BintrayPackage
 import com.bintray.BintrayPackageResponse
-import com.bintray.BintrayPackageSimple
-import com.bintray.BintrayService
+import com.bintray.BintrayApi
 import com.github.GithubReadmeService
 import com.github.GithubRepository
 import com.github.GithubService
@@ -22,7 +22,7 @@ import static grails.async.Promises.task
 class GrailsPluginsService implements GrailsConfigurationAware {
 
     GrailsPluginsRepository grailsPluginsRepository
-    BintrayService bintrayService
+    BintrayApi bintrayRepository
     GithubService githubService
     GithubReadmeService githubReadmeService
     AsciidocRenderService asciidocRenderService
@@ -48,16 +48,16 @@ class GrailsPluginsService implements GrailsConfigurationAware {
     void refresh() {
         grailsPluginsRepository.clearNotUpdatedSince(oneDayAgo())
         Integer startAt = 0
-        BintrayPackageResponse rsp = bintrayService.fetchBintrayPackagesByStartPosition(startAt)
+        BintrayPackageResponse rsp = bintrayRepository.fetchPackagesByStartPosition(startAt)
         if ( rsp != null ) {
             log.trace 'BintrayPackageResponse start: {} end: {} total: {}', rsp.start, rsp.end, rsp.total
             fetch(rsp)
-            List<Integer> positions = bintrayService.expectedExtraStarPositions(rsp.total, rsp.start, rsp.end)
+            List<Integer> positions = bintrayRepository.expectedExtraStarPositions(rsp.total, rsp.start, rsp.end)
             log.trace("positions {}", positions)
             positions.each { Integer start ->
                 task {
                     log.trace("fetching bintray packages with start {}", start)
-                    bintrayService.fetchBintrayPackagesByStartPosition(start)
+                    bintrayRepository.fetchPackagesByStartPosition(start)
                 }.onComplete { BintrayPackageResponse bintrayPackageResponse ->
                     log.trace 'BintrayPackageResponse start: {} end: {} total: {}', bintrayPackageResponse.start, bintrayPackageResponse.end, bintrayPackageResponse.total
                     if ( bintrayPackageResponse != null ) {
@@ -71,17 +71,17 @@ class GrailsPluginsService implements GrailsConfigurationAware {
     }
 
     void fetch(BintrayPackageResponse rsp) {
-        for (BintrayPackageSimple bintrayPackageSimple : rsp.bintrayPackageList ) {
+        for (ArtifactPackageSimple bintrayPackageSimple : rsp.packageList ) {
             log.debug("fetching bintray package {}", bintrayPackageSimple.toString())
             fetch(bintrayPackageSimple)
         }
     }
 
-    void fetch(BintrayPackageSimple bintrayPackageSimple) {
+    void fetch(ArtifactPackageSimple bintrayPackageSimple) {
         if ( !blacklist.contains(bintrayPackageSimple.name) ) {
             task {
                 log.trace("fetch bintray package {}", bintrayPackageSimple.name)
-                bintrayService.fetchBintrayPackage(bintrayPackageSimple.name)
+                bintrayRepository.fetchPackage(bintrayPackageSimple.name)
             }.onComplete { BintrayPackage bintrayPackage ->
                 if ( bintrayPackage ) {
                     BintrayKey key = BintrayKey.of(bintrayPackage)
